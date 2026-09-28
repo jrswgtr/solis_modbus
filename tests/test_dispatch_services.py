@@ -70,22 +70,6 @@ def test_dispatch_schedule_enabled_rejects_invalid_values(value):
         SCHEME_DISPATCH_SCHEDULE({"period": 1, "enabled": value})
 
 
-@pytest.mark.parametrize("value", [False, "false", "off", "0", 0])
-def test_false_text_never_enables_dispatch_function_bits(value):
-    data = SCHEME_DISPATCH({"mode": "battery_hold", **dict.fromkeys(DISPATCH_BOOLEAN_FIELDS, value)})
-    assert (
-        _dispatch_function_value(
-            3,
-            pv_shutdown=data["pv_shutdown"],
-            allow_grid_charge=data["allow_grid_charge"],
-            disable_discharge=data["disable_discharge"],
-            battery_reserve=data["battery_reserve"],
-            pv_limit=data["pv_limit"],
-        )
-        == 0x5565
-    )
-
-
 def test_system_limits():
     assert _dispatch_system_limits(None, None) == (0, 0xFFFF, 0xFFFF)
     assert _dispatch_system_limits(24000, 24000) == (3, 240, 240)

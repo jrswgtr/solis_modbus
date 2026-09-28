@@ -112,7 +112,6 @@ RC_POWER_MULTIPLIER = 10
 # write order: failsafe -> master on -> power/function/SOC -> control mode LAST
 # (the function field is re-initialized by the inverter unless dispatch is on).
 DISPATCH_CAPABILITY_REG = 34502
-DISPATCH_VERSION_REG = 34503
 DISPATCH_CAPABLE_MAGIC = 0xAA55
 DISPATCH_MASTER_REG = 44100
 DISPATCH_FAILSAFE_REG = 44101
