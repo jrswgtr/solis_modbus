@@ -416,16 +416,6 @@ async def async_setup(hass: HomeAssistant, entry: ConfigEntry):
         if reserve_soc is not None and soc_max is not None and int(reserve_soc) > int(soc_max):
             raise ServiceValidationError("Battery reserve SOC must not exceed the Remote Dispatch SOC upper limit")
 
-    def _function_value(call: ServiceCall, version: int) -> int:
-        return _dispatch_function_value(
-            version,
-            pv_shutdown=call.data.get("pv_shutdown"),
-            allow_grid_charge=call.data.get("allow_grid_charge"),
-            battery_reserve=call.data.get("battery_reserve"),
-            disable_discharge=call.data.get("disable_discharge"),
-            pv_limit=call.data.get("pv_limit"),
-        )
-
     async def service_dispatch(call: ServiceCall) -> None:
         """Real-time Remote Dispatch: goal-seeking grid/battery control with failsafe."""
         controller = _resolve_controller(call)
@@ -435,7 +425,14 @@ async def async_setup(hass: HomeAssistant, entry: ConfigEntry):
 
         mode_value, sign = DISPATCH_MODES[call.data["mode"]]
         power_raw = sign * round(int(call.data.get("power_watts", 0)) / 10)
-        function_value = _function_value(call, version)
+        function_value = _dispatch_function_value(
+            version,
+            pv_shutdown=call.data.get("pv_shutdown"),
+            allow_grid_charge=call.data.get("allow_grid_charge"),
+            battery_reserve=call.data.get("battery_reserve"),
+            disable_discharge=call.data.get("disable_discharge"),
+            pv_limit=call.data.get("pv_limit"),
+        )
         reserve_soc = int(call.data.get("battery_reserve_soc") or 0)
         pv_limit_raw = round(float(call.data.get("pv_limit_percentage") or 0) * 100)
         soc_low = int(call.data["soc_min"]) if call.data.get("soc_min") is not None else 0
@@ -497,7 +494,14 @@ async def async_setup(hass: HomeAssistant, entry: ConfigEntry):
         mode_value, sign = DISPATCH_MODES[call.data.get("mode", "battery_hold")]
         power_raw = sign * round(int(call.data.get("power_watts", 0)) / 10)
 
-        function_value = _function_value(call, version)
+        function_value = _dispatch_function_value(
+            version,
+            pv_shutdown=call.data.get("pv_shutdown"),
+            allow_grid_charge=call.data.get("allow_grid_charge"),
+            battery_reserve=call.data.get("battery_reserve"),
+            disable_discharge=call.data.get("disable_discharge"),
+            pv_limit=call.data.get("pv_limit"),
+        )
         reserve_soc = int(call.data.get("battery_reserve_soc") or 0)
         pv_limit_raw = round(float(call.data.get("pv_limit_percentage") or 0) * 100)
         block = [
