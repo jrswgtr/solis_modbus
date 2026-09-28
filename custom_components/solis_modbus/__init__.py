@@ -392,14 +392,9 @@ async def async_setup(hass: HomeAssistant, entry: ConfigEntry):
         await controller.async_write_holding_register(RC_FORCE_MODE_REG, 0)
 
     async def _dispatch_version(controller) -> int:
-        from .helpers import cache_get
-
-        capability = cache_get(hass, controller, DISPATCH_CAPABILITY_REG)
-        version = cache_get(hass, controller, DISPATCH_VERSION_REG)
-        if capability is None or version is None:
-            values = await controller.async_read_input_register(DISPATCH_CAPABILITY_REG, 2)
-            capability = values[0] if values else None
-            version = values[1] if values and len(values) > 1 else None
+        values = await controller.async_read_input_register(DISPATCH_CAPABILITY_REG, 2)
+        capability = values[0] if values else None
+        version = values[1] if values and len(values) > 1 else None
         if capability != DISPATCH_CAPABLE_MAGIC:
             raise ServiceValidationError(f"This inverter does not support Remote Dispatch (register 34502 reads {capability}, expected 0xAA55)")
         if version not in (1, 2, 3):

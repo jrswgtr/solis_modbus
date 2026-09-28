@@ -272,6 +272,7 @@ async def test_dispatch_schedule_disable_leaves_master_alone(hass: HomeAssistant
 
 @pytest.mark.asyncio
 async def test_dispatch_v04_activation_fails_closed(hass: HomeAssistant, controller):
+    controller.async_read_input_register.return_value = [0xAA55, 4]
     await setup_services(hass, controller)
     with patch("custom_components.solis_modbus.helpers.cache_get", side_effect=[0xAA55, 4]):
         with pytest.raises(ServiceValidationError):
@@ -305,6 +306,7 @@ async def test_dispatch_v03_self_use_discharge_block_and_release(hass: HomeAssis
 
 @pytest.mark.asyncio
 async def test_dispatch_v01_compatibility_and_version_validation(hass: HomeAssistant, controller):
+    controller.async_read_input_register.return_value = [0xAA55, 1]
     await setup_services(hass, controller)
     with patch("custom_components.solis_modbus.helpers.cache_get", side_effect=[0xAA55, 1]):
         await hass.services.async_call(DOMAIN, "solis_dispatch", {"mode": "battery_hold"}, blocking=True)
@@ -325,11 +327,27 @@ async def test_dispatch_v01_compatibility_and_version_validation(hass: HomeAssis
 
 @pytest.mark.asyncio
 async def test_dispatch_v02_rejects_pv_limiting(hass: HomeAssistant, controller):
+    controller.async_read_input_register.return_value = [0xAA55, 2]
     await setup_services(hass, controller)
     with patch("custom_components.solis_modbus.helpers.cache_get", side_effect=[0xAA55, 2]):
         with pytest.raises(ServiceValidationError):
             await hass.services.async_call(DOMAIN, "solis_dispatch", {"mode": "battery_hold", "pv_limit": True}, blocking=True)
     controller.async_write_holding_registers.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_dispatch_uses_live_version_when_once_cache_is_stale(hass: HomeAssistant, controller):
+    await setup_services(hass, controller)
+    with patch("custom_components.solis_modbus.helpers.cache_get", side_effect=[0xAA55, 1]):
+        await hass.services.async_call(
+            DOMAIN,
+            "solis_dispatch",
+            {"mode": "self_consumption", "disable_discharge": True},
+            blocking=True,
+        )
+
+    controller.async_read_input_register.assert_awaited_once_with(34502, 2)
+    assert controller.async_write_holding_registers.await_args_list[1].args == (44105, [5, 0, 0, 0x5955, 0, 100, 0, 0])
 
 
 @pytest.mark.asyncio
