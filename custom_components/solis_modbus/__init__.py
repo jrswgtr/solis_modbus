@@ -442,6 +442,13 @@ async def async_setup(hass: HomeAssistant, entry: ConfigEntry):
         soc_high = int(call.data["soc_max"]) if call.data.get("soc_max") is not None else 100
         switches, import_raw, export_raw = _dispatch_system_limits(call.data.get("import_limit_watts"), call.data.get("export_limit_watts"))
 
+        # The dispatch block must be written as contiguous chunks (Ver3.4 doc):
+        # scattered single-register writes get silently dropped/re-initialized,
+        # especially under write-queue contention. Two atomic FC16 blocks:
+        #   global 44100-44104  = master, failsafe, limit switch, import/export caps
+        #   realtime 44105-44112 = mode, power(S32), function, SOC window
+        # Global first so dispatch is active before the realtime block lands
+        # (the function field is re-initialized unless the master is already on).
         await controller.async_write_holding_registers(
             DISPATCH_MASTER_REG,
             [1, int(call.data.get("failsafe_minutes", 30)), switches, import_raw, export_raw],
