@@ -232,19 +232,48 @@ solis_dispatch:
           mode: box
     pv_shutdown:
       name: PV shutdown
-      description: Shut PV generation down for the duration of the dispatch (omit = leave unchanged)
+      description: Shut PV generation down for the duration of the dispatch (default off)
       selector:
         boolean:
     allow_grid_charge:
       name: Allow grid charging
-      description: Permit/deny grid-to-battery charging during the dispatch (omit = leave unchanged)
+      description: Permit/deny grid-to-battery charging during the dispatch (default allowed)
       selector:
         boolean:
     disable_discharge:
       name: Disable discharge
-      description: Inhibit battery discharge during the dispatch (omit = leave unchanged)
+      description: Inhibit battery discharge during the dispatch (default off)
       selector:
         boolean:
+    battery_reserve:
+      name: Battery reserve
+      description: Enable or disable Remote Dispatch battery reserve (V02 or newer; default off)
+      selector:
+        boolean:
+    battery_reserve_soc:
+      name: Battery reserve SOC
+      description: Remote Dispatch reserve in whole percent (V02 or newer; default 0%)
+      selector:
+        number:
+          min: 0
+          max: 100
+          unit_of_measurement: "%"
+          mode: box
+    pv_limit:
+      name: PV limit
+      description: Enable or disable Remote Dispatch PV limiting (V03; default off)
+      selector:
+        boolean:
+    pv_limit_percentage:
+      name: PV limit percentage
+      description: PV output limit in percent (V03, encoded as percentage × 100; default 0%)
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: 0.01
+          unit_of_measurement: "%"
+          mode: box
     soc_min:
       name: SOC lower limit
       selector:
@@ -372,16 +401,48 @@ solis_dispatch_schedule:
           mode: box
     pv_shutdown:
       name: PV shutdown
+      description: Default off
       selector:
         boolean:
     allow_grid_charge:
       name: Allow grid charging
+      description: Default allowed
       selector:
         boolean:
     disable_discharge:
       name: Disable discharge
+      description: Default off
       selector:
         boolean:
+    battery_reserve:
+      name: Battery reserve
+      description: V02 or newer; default off
+      selector:
+        boolean:
+    battery_reserve_soc:
+      name: Battery reserve SOC
+      description: V02 or newer; default 0%
+      selector:
+        number:
+          min: 0
+          max: 100
+          unit_of_measurement: "%"
+          mode: box
+    pv_limit:
+      name: PV limit
+      description: V03; default off
+      selector:
+        boolean:
+    pv_limit_percentage:
+      name: PV limit percentage
+      description: V03 percentage, encoded as percentage × 100; default 0%
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: 0.01
+          unit_of_measurement: "%"
+          mode: box
     soc_min:
       name: SOC lower limit
       default: 0
